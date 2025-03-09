@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/x-icon" href="Documentation/ico/Untitled.jpg" />
+    <title>About Us </title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #000;
+            color: white;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: red;
+            z-index: 10;
+            animation: slideUp 2s ease-in-out forwards;
+        }
+        @keyframes slideUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+        header, section, footer {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+        header {
+            padding: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 10px;
+            animation: rgbGlow 3s infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes rgbGlow {
+            0% { background: rgb(255, 0, 0); box-shadow: 0 0 20px rgb(255, 0, 0); }
+            25% { background: rgb(0, 100, 100); box-shadow: 0 0 20px rgb(0, 100, 100); }
+            50% { background: rgb(207, 207, 3); box-shadow: 0 0 20px rgb(207, 207, 3); }
+            75% { background: rgb(0, 0, 150); box-shadow: 0 0 20px rgb(0, 0, 150); }
+            100% { background: rgb(150, 0, 150); box-shadow: 0 0 20px rgb(150, 0, 150); }
+        }
+        section {
+            margin: 20px auto;
+            padding: 20px;
+            background: #222;
+            border-radius: 10px;
+            width: 80%;
+            border: 3px solid;
+            animation: sectionGlow 3s infinite alternate;
+        }
+        @keyframes sectionGlow {
+            0% { border-color: rgb(255, 105, 105); box-shadow: 0 0 15px rgb(255, 105, 105); }
+            50% { border-color: rgb(200, 255, 255); box-shadow: 0 0 15px rgb(200, 255, 255); }
+            100% { border-color: rgb(255, 255, 200); box-shadow: 0 0 15px rgb(255, 255, 200); }
+        }
+        footer {
+            padding: 10px;
+            background: #111;
+            font-size: 14px;
+            color: #ccc;
+            width: 100%;
+            border-top: 3px solid;
+            animation: rgbGlow 3s infinite alternate;
+            margin-top: auto; /* يدفع الفوتر لأسفل الصفحة */
+        }
+        .visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .about{
+            color: brown;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                document.querySelector("header").classList.add("visible");
+            }, 2000);
+            
+            const sections = document.querySelectorAll("section");
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    section.classList.add("visible");
+                }, 2500 + index * 1000);
+            });
+            
+            setTimeout(() => {
+                document.querySelector("footer").classList.add("visible");
+            }, 5500);
+        });
+    </script>
+</head>
+<body>
+    <div class="overlay"></div>
+    <header>
+        <h1>The Devils Studio</h1>
+    </header>
+    <section>
+        <h2 class ="about">Studio About</h2>
+        <p>It is a studio for developing games and applications and works on the Neutron engine. It was founded in 2024.</p>
+    </section>
+    <section>
+        <h2 class ="about">Neutron Game engine</h2>
+        <p>Neutron Engine is a 2D retro game development engine that runs on the X94 programming language based on JavaScript.</p>
+    </section>
+    
+    <section>
+        <h2 class ="about">Contact us:</h2>
+        <p>To know more about our project Connect on <a href="#">social media platforms</a>.</p>
+    </section>
+    <section>
+        <h2 class="about">Our devlopers</h2>
+        <p>The Dev 3 <br>Mg The Killer <br> SuperGiant Games </p>
+    </section>
+    
+    <footer>
+        <p>&copy; CopyRight 2025 The Devils. </p>
+    </footer>
+</body>
+</html>

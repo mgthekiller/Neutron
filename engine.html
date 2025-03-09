@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoleil with Cubec Engine - Alpha Version</title>
+    <link rel="shortcut icon" type="image/x-icon" href="Documentation/ico/26684.jpg" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.js"></script>
+    <style>
+        body { display: flex; height: 100vh; margin: 0; font-family: Arial, sans-serif; background: #121212; color: white; }
+        #sidebar { width: 20%; background: #1e1e1e; padding: 15px; display: flex; flex-direction: column; border-right: 2px solid #333; }
+        #editor-container { flex: 1; display: flex; flex-direction: column; border-right: 2px solid #444; }
+        #editor { flex: 1; }
+        #preview { width: 40%; display: flex; flex-direction: column; background: #222; padding: 10px; }
+        canvas { flex: 1; background: black; border: 2px solid #555; }
+        #console { height: 150px; background: black; color: lime; overflow-y: auto; padding: 5px; font-family: monospace; }
+        button { padding: 10px; margin-top: 10px; background: #444; color: white; border: none; cursor: pointer; }
+        button:hover { background: #666; }
+        ul { list-style: none; padding: 0; }
+        li { cursor: pointer; padding: 8px; background: #333; margin: 5px 0; border-radius: 5px; }
+        #fileExplorer { margin-top: 20px; padding: 10px; background: #333; border-radius: 5px; }
+        .file-item { padding: 5px 10px; background: #444; margin: 5px 0; cursor: pointer; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3>Projects</h3>
+        <ul id="projectList"></ul>
+        <button onclick="newProject()">New Project</button>
+        <div class="section">
+            <h3>Files</h3>
+            <ul id="fileList"></ul>
+            <button onclick="newFile()">New File</button>
+        </div>
+        <div class="section">
+            <h3>Maps</h3>
+            <ul id="mapList"></ul>
+            <button onclick="newMap()">New Map</button>
+        </div>
+        <div class="section">
+            <h3>Sprites</h3>
+            <ul id="spriteList"></ul>
+            <button onclick="newSprite()">New Sprite</button>
+        </div>
+    </div>
+    <div id="editor-container">
+        <div id="editor"></div>
+        <button onclick="runCode()">Run</button>
+    </div>
+    <div id="preview">
+        <canvas id="gameCanvas"></canvas>
+        <div id="console"></div>
+    </div>
+
+    <script>
+        let editor;
+        let projects = JSON.parse(localStorage.getItem("projects")) || {};
+        let currentProject = null;
+        let currentFile = null;
+        let consoleElement = document.getElementById("console");
+        let canvas = document.getElementById("gameCanvas");
+        let gl = canvas.getContext("webgl");
+
+        // تخصيص إعدادات Monaco Editor لدعم لغتك الخاصة
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' } });
+        require(["vs/editor/editor.main"], function() {
+            monaco.languages.register({ id: "cubec" }); // تسجيل لغة محرك الألعاب الخاصة بك
+            monaco.languages.setMonarchTokensProvider("cubec", {
+                tokenizer: {
+                    root: [
+                        [/const|let|var|import|drawSprite|moveObject|drawCube/, "keyword"], // إضافة دعم لرسم المكعبات ثلاثية الأبعاد
+                        [/([a-zA-Z_][a-zA-Z0-9_]*)/, "identifier"],
+                        [/\d+/, "number"],
+                        [/[{}()\[\]]/, "delimiter"],
+                        [/"[^"]*"/, "string"],
+                    ]
+                }
+            });
+
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: "// Select a project or create a new one",
+                language: "cubec", // تعيين اللغة الجديدة الخاصة بك
+                theme: "vs-dark"
+            });
+
+            loadProjects();
+        });
+
+        function logToConsole(message) {
+            consoleElement.innerHTML += `<div>${message}</div>`;
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        }
+
+        function loadProjects() {
+            const list = document.getElementById("projectList");
+            list.innerHTML = "";
+            for (let name in projects) {
+                let li = document.createElement("li");
+                li.textContent = name;
+                li.onclick = () => openProject(name);
+                list.appendChild(li);
+            }
+        }
+
+        function newProject() {
+            const name = prompt("Enter project name:");
+            if (name && !projects[name]) {
+                projects[name] = { "main.cubec": "const canvas = document.getElementById('gameCanvas');\nconsole.log('Hello, world!');\n\n// رسم المكعب\nfunction drawCube(x, y, size) {\n    const gl = canvas.getContext('webgl');\n    const vertices = new Float32Array([\n        -size, -size, -size,\n        size, -size, -size,\n        size, size, -size,\n        -size, size, -size,\n        -size, -size, size,\n        size, -size, size,\n        size, size, size,\n        -size, size, size,\n    ]);\n    const vertexBuffer = gl.createBuffer();\n    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);\n    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);\n\n    const vertexShader = gl.createShader(gl.VERTEX_SHADER);\n    gl.shaderSource(vertexShader, \n        attribute vec3 a_position;\n        void main() {\n            gl_Position = vec4(a_position, 1.0);\n        }\n    );\n    gl.compileShader(vertexShader);\n\n    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);\n    gl.shaderSource(fragmentShader, \n        void main() {\n            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n        }\n    );\n    gl.compileShader(fragmentShader);\n\n    const program = gl.createProgram();\n    gl.attachShader(program, vertexShader);\n    gl.attachShader(program, fragmentShader);\n    gl.linkProgram(program);\n    gl.useProgram(program);\n\n    const a_position = gl.getAttribLocation(program, 'a_position');\n    gl.vertexAttribPointer(a_position, 3, gl.FLOAT, false, 0, 0);\n    gl.enableVertexAttribArray(a_position);\n\n    gl.clear(gl.COLOR_BUFFER_BIT);\n    gl.drawArrays(gl.TRIANGLE_FAN, 0, 8);\n}\n\n// رسم المكعب\n\nconst canvas = document.getElementById('gameCanvas');\ndrawCube(0, 0, 0.5);" };
+                saveProjects();
+                loadProjects();
+                openProject(name);
+            }
+        }
+
+        function openProject(name) {
+            currentProject = name;
+            loadFiles();
+        }
+
+        function loadFiles() {
+            const list = document.getElementById("fileList");
+            list.innerHTML = "";
+            for (let file in projects[currentProject]) {
+                let li = document.createElement("li");
+                li.textContent = file;
+                li.onclick = () => openFile(file);
+                list.appendChild(li);
+            }
+        }
+
+        function newFile() {
+            const name = prompt("Enter file name:");
+            if (name && !projects[currentProject][name]) {
+                projects[currentProject][name] = "";
+                saveProjects();
+                loadFiles();
+                openFile(name);
+            }
+        }
+
+        function openFile(name) {
+            currentFile = name;
+            editor.setValue(projects[currentProject][name]);
+        }
+
+        function saveProjects() {
+            localStorage.setItem("projects", JSON.stringify(projects));
+        }
+
+        function runCode() {
+            if (currentProject && currentFile) {
+                projects[currentProject][currentFile] = editor.getValue();
+                saveProjects();
+            }
+            consoleElement.innerHTML = "";
+            try {
+                new Function(editor.getValue())();
+                logToConsole("Execution successful.");
+            } catch (error) {
+                logToConsole("Error: " + error.message);
+            }
+        }
+
+        // وظائف إضافية للتحريك واستيراد الصور والمشاريع
+        function drawSprite(image, x, y) {
+            const ctx = document.getElementById('gameCanvas').getContext('2d');
+            ctx.drawImage(image, x, y);
+        }
+
+        function moveObject(x, y, speed) {
+            let obj = { x, y, speed };
+            obj.x += speed;
+            obj.y += speed;
+            return obj;
+        }
+
+        // استيراد صورة
+        function importImage() {
+            let input = document.createElement("input");
+            input.type = "file";
+            input.accept = "image/*";
+            input.onchange = function(event) {
+                let file = event.target.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        let imageData = e.target.result;
+                        let spriteCode = `let sprite = new Image(); sprite.src = "${imageData}";`;
+                        editor.setValue(editor.getValue() + "\n" + spriteCode);  // إضافة الكود تلقائيًا
+                        logToConsole("Image imported successfully.");
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+
+        // استيراد خريطة
+        function importMap() {
+            let input = document.createElement("input");
+            input.type = "file";
+            input.accept = ".json";
+            input.onchange = function(event) {
+                let file = event.target.files[0];
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let mapData = JSON.parse(e.target.result);
+                    logToConsole("Map imported successfully.");
+                    // يمكنك إضافة مزيد من الوظائف لتحميل الخريطة في المحرك
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    </script>
+</body>
+</html>

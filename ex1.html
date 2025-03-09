@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محول CubeC إلى HTML5</title>
+</head>
+<body>
+
+    <h1>محول CubeC إلى HTML5</h1>
+    <textarea id="cubeCCode" rows="10" cols="50" placeholder="أدخل كود CubeC هنا"></textarea><br><br>
+    <button onclick="convertCode()">تحويل الكود</button>
+
+    <h2>الكود المحول إلى HTML5:</h2>
+    <pre id="html5Code"></pre>
+
+    <script>
+        function convertCode() {
+            const cubeCCode = document.getElementById('cubeCCode').value;
+            const html5Code = convertCubeCToHTML5(cubeCCode);
+            document.getElementById('html5Code').textContent = html5Code;
+        }
+    </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محول CubeC إلى HTML5</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+        }
+        textarea {
+            width: 80%;
+            height: 150px;
+            margin-bottom: 20px;
+            color: black;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #html5Code {
+            width: 80%;
+            margin-top: 20px;
+            color: black;
+            font-size: 16px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        canvas {
+            border: 2px solid white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>محول CubeC إلى HTML5</h1>
+    <textarea id="cubeCCode" placeholder="أدخل كود CubeC هنا..."></textarea><br>
+    <button onclick="convertCode()">تحويل الكود إلى HTML5</button>
+    
+    <h2>الكود المحول:</h2>
+    <pre id="html5Code"></pre>
+
+    <h2>اللعبة:</h2>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+    <script>
+        function convertCubeCToHTML5(cubeCCode) {
+            // سنفترض أن CubeC يحتوي على بعض الأوامر البسيطة مثل snake game:
+            let html5Code = `
+                <!DOCTYPE html>
+                <html lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>لعبة CubeC</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #222;
+                            color: white;
+                            text-align: center;
+                        }
+                        canvas {
+                            border: 1px solid black;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>لعبة CubeC على HTML5</h1>
+                    <canvas id="gameCanvas" width="500" height="500"></canvas>
+                    <script>
+                        const canvas = document.getElementById('gameCanvas');
+                        const ctx = canvas.getContext('2d');
+                        const gridSize = 20;
+                        const canvasWidth = 500;
+                        const canvasHeight = 500;
+                        canvas.width = canvasWidth;
+                        canvas.height = canvasHeight;
+                        
+                        let snake = [{ x: 100, y: 100 }];
+                        let direction = 'right';
+                        let food = { x: 200, y: 200 };
+                        let score = 0;
+
+                        function drawSnake() {
+                            for (let i = 0; i < snake.length; i++) {
+                                ctx.fillStyle = i === 0 ? 'green' : 'lightgreen';
+                                ctx.fillRect(snake[i].x, snake[i].y, gridSize, gridSize);
+                            }
+                        }
+
+                        function drawFood() {
+                            ctx.fillStyle = 'red';
+                            ctx.fillRect(food.x, food.y, gridSize, gridSize);
+                        }
+
+                        function drawScore() {
+                            ctx.fillStyle = 'white';
+                            ctx.font = '20px Arial';
+                            ctx.fillText('Score: ' + score, 10, 30);
+                        }
+
+                        function moveSnake() {
+                            let head = { ...snake[0] };
+
+                            if (direction === 'right') head.x += gridSize;
+                            if (direction === 'left') head.x -= gridSize;
+                            if (direction === 'up') head.y -= gridSize;
+                            if (direction === 'down') head.y += gridSize;
+
+                            snake.unshift(head);
+
+                            if (head.x === food.x && head.y === food.y) {
+                                score++;
+                                placeFood();
+                            } else {
+                                snake.pop();
+                            }
+                        }
+
+                        function placeFood() {
+                            food.x = Math.floor(Math.random() * (canvasWidth / gridSize)) * gridSize;
+                            food.y = Math.floor(Math.random() * (canvasHeight / gridSize)) * gridSize;
+                        }
+
+                        function checkCollision() {
+                            let head = snake[0];
+
+                            if (head.x < 0 || head.x >= canvasWidth || head.y < 0 || head.y >= canvasHeight) {
+                                return true;
+                            }
+
+                            for (let i = 1; i < snake.length; i++) {
+                                if (head.x === snake[i].x && head.y === snake[i].y) {
+                                    return true;
+                                }
+                            }
+
+                            return false;
+                        }
+
+                        function changeDirection(event) {
+                            if (event.key === 'ArrowRight' && direction !== 'left') {
+                                direction = 'right';
+                            } else if (event.key === 'ArrowLeft' && direction !== 'right') {
+                                direction = 'left';
+                            } else if (event.key === 'ArrowUp' && direction !== 'down') {
+                                direction = 'up';
+                            } else if (event.key === 'ArrowDown' && direction !== 'up') {
+                                direction = 'down';
+                            }
+                        }
+
+                        function updateGame() {
+                            if (checkCollision()) {
+                                alert('Game Over! Score: ' + score);
+                                resetGame();
+                            } else {
+                                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                                moveSnake();
+                                drawSnake();
+                                drawFood();
+                                drawScore();
+                            }
+                        }
+
+                        function resetGame() {
+                            snake = [{ x: 100, y: 100 }];
+                            direction = 'right';
+                            score = 0;
+                            placeFood();
+                        }
+
+                        window.addEventListener('keydown', changeDirection);
+                        placeFood();
+                        setInterval(updateGame, 100);
+                    </script>
+                </body>
+                </html>
+            `;
+            return html5Code;
+        }
+
+        function convertCode() {
+            const cubeCCode = document.getElementById('cubeCCode').value;
+            const html5Code = convertCubeCToHTML5(cubeCCode);
+            document.getElementById('html5Code').textContent = html5Code;
+
+            // تحميل الكود المحول في نافذة جديدة
+            const newWindow = window.open();
+            newWindow.document.write(html5Code);
+        }
+    </script>
+    
+</body>
+</html>

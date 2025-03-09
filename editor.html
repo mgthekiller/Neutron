@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/x-icon" href="Documentation/ico/26684.jpg" />
+    <title>محرر لغة اكس اربع و تسعون</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/codemirror.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/mode/javascript/javascript.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif;
+            
+            text-align: center;
+            background-color: beige;
+        
+        }
+        .CodeMirror { width: 90%; height: 200px; border: 1px solid black; font-size: 16px; }
+        canvas { border: 2px solid black; margin-top: 10px; }
+        button { padding: 10px 20px; font-size: 16px; margin: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2> محرر لغة اكس اربع و تسعون</h2>
+    <textarea id="codeEditor"># اكتب كود اكس اربع و تسعون هنا...
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canvas Game</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
+    canvas {
+      border: 2px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="500" height="600"></canvas>
+  <script 
+</script>
+
+</body>
+</html>
+
+    </textarea>
+    <button onclick="runCode()">تشغيل</button>
+    <button onclick="downloadCode()">تنزيل</button>
+    <input type="file" id="fileInput" onchange="loadFile()" />
+    
+    <canvas id="gameCanvas" width="500" height="400"></canvas>
+
+    <script>
+        let canvas = document.getElementById("gameCanvas");
+        let ctx = canvas.getContext("2d");
+
+        let editor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
+            mode: "javascript",
+            lineNumbers: true
+        });
+
+        function runCode() {
+            let cubicCode = editor.getValue();
+            let jsCode = convertCubicToJS(cubicCode);
+            try {
+                eval(jsCode);
+            } catch (error) {
+                alert("خطأ في تنفيذ الكود: " + error.message);
+            }
+        }
+
+        function convertCubicToJS(cubicCode) {
+            return cubicCode
+                .replace(/لون\((.+)\);/g, "ctx.fillStyle = '$1';")
+                .replace(/مسح\(\);/g, "ctx.clearRect(0, 0, canvas.width, canvas.height);")
+                .replace(/رسم\.دائرة\((.+),(.+),(.+)\);/g, "ctx.beginPath(); ctx.arc($1, $2, $3, 0, Math.PI * 2); ctx.fill();")
+                .replace(/رسم\.مستطيل\((.+),(.+),(.+),(.+)\);/g, "ctx.fillRect($1, $2, $3, $4);")
+                .replace(/رسم\.خط\((.+),(.+),(.+),(.+)\);/g, "ctx.beginPath(); ctx.moveTo($1, $2); ctx.lineTo($3, $4); ctx.stroke();");
+        }
+
+        function downloadCode() {
+            let cubicCode = editor.getValue();
+            let blob = new Blob([cubicCode], { type: "text/html" });
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "code.html";
+            a.click();
+        }
+
+        function loadFile() {
+            let file = document.getElementById("fileInput").files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                editor.setValue(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+    </script>
+
+</body>
+</html>

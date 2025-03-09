@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/x-icon" href="Documentation/ico/26684.jpg" />
+    <title>Microsoleil with Cubec Engine - Free Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { 
+            display: flex; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: Arial, sans-serif; 
+            background: #fafafa; 
+            color: white; 
+            transition: background-color 0.3s ease;
+        }
+        body:hover {
+            background-color: #ececec; /* إضافة تأثير عند مرور الماوس */
+        }
+        #sidebar { 
+            width: 20%; 
+            background: #1e1e1e; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            border-right: 2px solid #333; 
+        }
+        #editor-container { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            border-right: 2px solid #444; 
+        }
+        #editor { 
+            flex: 1; 
+            height: 100%; 
+        }
+        #preview { 
+            width: 40%; 
+            display: flex; 
+            flex-direction: column; 
+            background: #222; 
+            padding: 10px; 
+            position: relative;
+        }
+        canvas { 
+            flex: 1; 
+            background: black; 
+            border: 2px solid #555; 
+        }
+        #console { 
+            height: 150px; 
+            background: rgb(112, 112, 112); 
+            color: rgb(254, 255, 254); 
+            overflow-y: auto; 
+            padding: 5px; 
+            font-family: monospace; 
+            margin-top: 10px;
+        }
+        button { 
+            padding: 10px; 
+            margin-top: 10px; 
+            background: #444; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            border-radius: 5px; /* تحسين الأزرار */
+            transition: background 0.3s ease;
+        }
+        button:hover { 
+            background: #666; 
+        }
+        ul { 
+            list-style: none; 
+            padding: 0; 
+        }
+        li { 
+            cursor: pointer; 
+            padding: 8px; 
+            background: #333; 
+            margin: 5px 0; 
+            border-radius: 5px; 
+        }
+        #fileExplorer { 
+            margin-top: 20px; 
+            padding: 10px; 
+            background: #333; 
+            border-radius: 5px; 
+        }
+        .file-item { 
+            padding: 5px 10px; 
+            background: #444; 
+            margin: 5px 0; 
+            cursor: pointer; 
+            border-radius: 5px; 
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3>Projects</h3>
+        <ul id="projectList"></ul>
+        <button onclick="newProject()">New Project</button>
+        <h3>Assets</h3>
+        <button onclick="importAsset()">Import Asset</button>
+        <h3>File Explorer</h3>
+        <div id="fileExplorer"></div>
+        <button onclick="createNewFile()">Create File</button>
+    </div>
+    <div id="editor-container">
+        <div id="editor"></div>
+        <button onclick="runCode()">Run</button>
+        <button onclick="saveCode()">Save Code</button>
+        <button onclick="loadCode()">Load Code</button>
+    </div>
+    <div id="preview">
+        <canvas id="gameCanvas"></canvas>
+        <div id="console"></div>
+    </div>
+    <script src="LANGv.js"></script>   
+</body>
+</html>

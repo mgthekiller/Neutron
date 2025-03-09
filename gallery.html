@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoleil with Cubec Engine - Alpha Version</title>
+    <link rel="shortcut icon" type="image/x-icon" href="Documentation/ico/26684.jpg" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.js"></script>
+    <style>
+    body { display: flex; height: 100vh; margin: 0; font-family: Arial, sans-serif; background: #fafafa; color: white; }
+    #sidebar { width: 20%; background: #1e1e1e; padding: 15px; display: flex; flex-direction: column; border-right: 2px solid #333; }
+    #editor-container { flex: 1; display: flex; flex-direction: column; border-right: 2px solid #444; }
+    #editor { flex: 1; }
+    #preview { width: 40%; display: flex; flex-direction: column; background: #222; padding: 10px; }
+    canvas { flex: 1; background: black; border: 2px solid #555; }
+    #console { height: 150px; background: rgb(112, 112, 112); color: rgb(254, 255, 254); overflow-y: auto; padding: 5px; font-family: monospace; }
+    button { padding: 10px; margin-top: 10px; background: #444; color: white; border: none; cursor: pointer; }
+    button:hover { background: #666; }
+    ul { list-style: none; padding: 0; }
+    li { cursor: pointer; padding: 8px; background: #333; margin: 5px 0; border-radius: 5px; }
+    #fileExplorer { margin-top: 20px; padding: 10px; background: #333; border-radius: 5px; }
+    .file-item { padding: 5px 10px; background: #444; margin: 5px 0; cursor: pointer; border-radius: 5px; }
+</style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3>Projects</h3>
+        <ul id="projectList"></ul>
+        <button onclick="newProject()">New Project</button>
+        <button onclick="exportGame()">Export as HTML</button>
+        <div class="section">
+            <h3>Files</h3>
+            <ul id="fileList"></ul>
+            <button onclick="newFile()">New File</button>
+        </div>
+        <div class="section">
+            <h3>Maps</h3>
+            <ul id="mapList"></ul>
+            <button onclick="newMap()">New Map</button>
+        </div>
+        <div class="section">
+            <h3>Sprites</h3>
+            <ul id="spriteList"></ul>
+            <button onclick="newSprite()">New Sprite</button>
+        </div>
+    </div>
+    <div id="editor-container">
+        <div id="editor"></div>
+        <button onclick="runCode()">Run</button>
+    </div>
+    <div id="preview">
+        <canvas id="gameCanvas"></canvas>
+        <div id="console"></div>
+    </div>
+    <div id="terminal" style="background-color: purple; color: white; padding: 10px; font-family: monospace;">
+        <div id="output" style="height: 150px;"></div>
+        <input id="input" type="text" placeholder="Type a command..." style="width: 100%; background-color: black; color: white; border: none; outline: none;" />
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.15.0/dist/xterm.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.15.0/dist/xterm.css" />
+    <script src="export.js"></script>
+    <script>
+        let editor;
+        let projects = JSON.parse(localStorage.getItem("projects")) || {};
+        let currentProject = null;
+        let currentFile = null;
+        let consoleElement = document.getElementById("console");
+        let canvas = document.getElementById("gameCanvas");
+        let gl = canvas.getContext("webgl");
+
+        // تخصيص إعدادات Monaco Editor لدعم لغتك الخاصة
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs' } });
+        require(["vs/editor/editor.main"], function() {
+            monaco.languages.register({ id: "cubec" }); // تسجيل لغة محرك الألعاب الخاصة بك
+            monaco.languages.setMonarchTokensProvider("cubec", {
+                tokenizer: {
+                    root: [
+                        [/const|let|var|import|drawSprite|moveObject|drawCube/, "keyword"], // إضافة دعم لرسم المكعبات ثلاثية الأبعاد
+                        [/([a-zA-Z_][a-zA-Z0-9_]*)/, "identifier"],
+                        [/\d+/, "number"],
+                        [/[{}()\[\]]/, "delimiter"],
+                        [/"[^"]*"/, "string"],
+                    ]
+                }
+            });
+
+            monaco.languages.registerCompletionItemProvider("cubec", {
+                provideCompletionItems: function(model, position) {
+                    var suggestions = [
+                        {
+                            label: "drawCube",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "drawCube(x, y, size)"
+                        },
+                        {
+                            label: "moveObject",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "moveObject(dx, dy)"
+                        },
+                        {
+                            label: "rotateObject",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "rotateObject(object, angle)"
+                        },
+                        {
+                            label: "scaleObject",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "scaleObject(object, scaleX, scaleY)"
+                        },
+                        {
+                            label: "spawnObject",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "spawnObject(x, y, size, color)"
+                        },
+                        {
+                            label: "destroyObject",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "destroyObject(object)"
+                        },
+                        {
+                            label: "log",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "log('message')"
+                        },
+                        {
+                            label: "clearScreen",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "clearScreen()"
+                        },
+                        {
+                            label: "playSound",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "playSound('url')"
+                        },
+                        {
+                            label: "loadImage",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "loadImage('url')"
+                        },
+                        {
+                            label: "moveCamera",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "moveCamera(x, y, z)"
+                        },
+                        {
+                            label: "createLight",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "createLight(x, y, z, intensity)"
+                        },
+                        {
+                            label: "spawnEnemy",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "spawnEnemy(x, y, z)"
+                        },
+                        {
+                            label: "changeColor",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "changeColor(object, 'color')"
+                        },
+                        {
+                            label: "toggleFullScreen",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "toggleFullScreen()"
+                        },
+                        {
+                            label: "addParticleEffect",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "addParticleEffect(x, y, z)"
+                        },
+                        {
+                            label: "addGravity",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "addGravity(object)"
+                        },
+                        {
+                            label: "showScore",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "showScore(score)"
+                        },
+                        {
+                            label: "createTimer",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "createTimer(duration)"
+                        },
+                        {
+                            label: "playBackgroundMusic",
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: "playBackgroundMusic('url')"
+                        },
+                        {
+                        label: "onKeyPress",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: "onKeyPress(key, callback)"
+                    },
+                    {
+                        label: "onMouseClick",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: "onMouseClick(callback)"
+                    },
+                    {
+                        label: "constCanvas",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        inserText: "const canvas = document.getElementById('gameCanvas');"
+                    },
+                    {
+                        label: "Let canvas",
+                        kind: monaco.language.CompletionItemKind.Function,
+                        inserText: "let canvas = document.getElementById('gameCanvas');"
+                    },
+                    {
+                        label: "drawText",
+                        kind: monaco.languges.CompletionItemKind.Function,
+                        inserText: "function drawText(text, x, y, color = 'white', font = '20px Arial')"
+                    }
+                    ];
+                    return { suggestions: suggestions };
+                }
+            });
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: "// Select a project or create a new one",
+                language: "cubec", // تعيين اللغة الجديدة الخاصة بك
+                theme: "vs-dark"
+            });
+
+            loadProjects();
+        });
+
+        function logToConsole(message) {
+            consoleElement.innerHTML += `<div>> ${message}</div>`;
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        }
+
+        function loadProjects() {
+            const list = document.getElementById("projectList");
+            list.innerHTML = "";
+            for (let name in projects) {
+                let li = document.createElement("li");
+                li.textContent = name;
+                li.onclick = () => openProject(name);
+                list.appendChild(li);
+            }
+        }
+
+        function newProject() {
+            const name = prompt("Enter project name:");
+            if (name && !projects[name]) {
+                projects[name] = { "main.cubec": "const canvas = document.getElementById('gameCanvas');\nconsole.log('Hello, world!');\n\n// رسم المكعب\nfunction drawCube(x, y, size) {\n    const gl = canvas.getContext('webgl');\n    const vertices = new Float32Array([\n        -size, -size, -size,\n        size, -size, -size,\n        size, size, -size,\n        -size, size, -size,\n        -size, -size, size,\n        size, -size, size,\n        size, size, size,\n        -size, size, size,\n    ]);\n    const vertexBuffer = gl.createBuffer();\n    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);\n    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);\n\n    const vertexShader = gl.createShader(gl.VERTEX_SHADER);\n    gl.shaderSource(vertexShader, `\n        attribute vec3 a_position;\n        void main() {\n            gl_Position = vec4(a_position, 1.0);\n        }\n    `);\n    gl.compileShader(vertexShader);\n\n    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);\n    gl.shaderSource(fragmentShader, `\n        void main() {\n            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n        }\n    `);\n    gl.compileShader(fragmentShader);\n\n    const program = gl.createProgram();\n    gl.attachShader(program, vertexShader);\n    gl.attachShader(program, fragmentShader);\n    gl.linkProgram(program);\n    gl.useProgram(program);\n\n    const a_position = gl.getAttribLocation(program, 'a_position');\n    gl.vertexAttribPointer(a_position, 3, gl.FLOAT, false, 0, 0);\n    gl.enableVertexAttribArray(a_position);\n\n    gl.clear(gl.COLOR_BUFFER_BIT);\n    gl.drawArrays(gl.TRIANGLE_FAN, 0, 8);\n}\n\n// رسم المكعب\n\nconst canvas = document.getElementById('gameCanvas');\ndrawCube(0, 0, 0.5);" };
+                saveProjects();
+                loadProjects();
+                openProject(name);
+            }
+        }
+
+        function openProject(name) {
+            currentProject = name;
+            loadFiles();
+        }
+
+        function loadFiles() {
+            const list = document.getElementById("fileList");
+            list.innerHTML = "";
+            for (let file in projects[currentProject]) {
+                let li = document.createElement("li");
+                li.textContent = file;
+                li.onclick = () => openFile(file);
+                list.appendChild(li);
+            }
+        }
+
+        function newFile() {
+            const name = prompt("Enter file name:");
+            if (name && !projects[currentProject][name]) {
+                projects[currentProject][name] = "";
+                saveProjects();
+                loadFiles();
+                openFile(name);
+            }
+        }
+
+        function openFile(name) {
+            currentFile = name;
+            editor.setValue(projects[currentProject][name]);
+        }
+
+        function saveProjects() {
+            localStorage.setItem("projects", JSON.stringify(projects));
+        }
+
+        function runCode() {
+            if (currentProject && currentFile) {
+                projects[currentProject][currentFile] = editor.getValue();
+                saveProjects();
+            }
+            consoleElement.innerHTML = "";
+            try {
+                eval(editor.getValue());
+            } catch (e) {
+                logToConsole("Error: " + e.message);
+            }
+        }
+
+        function downloadHTML() {
+            const code = editor.getValue(); // الحصول على الكود من المحرر
+            const blob = new Blob([code], { type: "text/html" }); // إنشاء ملف بصيغة HTML
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "game.html"; // اسم الملف عند التنزيل
+            document.body.appendChild(a);
+            a.click(); // تفعيل التنزيل
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // تنظيف الذاكرة
+        } 
+        document.getElementById("input").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                const command = event.target.value;
+                processCommand(command);
+                event.target.value = ''; // Clear the input after command
+            }
+        });
+        
+// تخصيص التيرمنال باستخدام xterm.js
+let terminal = new Terminal({
+    cols: 80,
+    rows: 24,
+    convertEol: true,
+    theme: {
+        background: 'purple',
+        foreground: 'white'
+    }
+});
+
+terminal.open(document.getElementById('output'));  // تحديد المكان الذي سيتم فيه عرض التيرمنال
+terminal.write('Welcome to Microsoleil Terminal!\r\n');
+
+document.getElementById('input').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        const command = event.target.value;
+        terminal.write(`\r\n> ${command}\r\n`);
+        handleCommand(command);
+        event.target.value = '';  // إعادة تعيين المدخل
+    }
+});
+
+function handleCommand(command) {
+    // هنا يمكن إضافة أوامر مختلفة للتفاعل مع المحرك أو تنفيذ الأكواد داخل اللعبة
+    if (command === 'clear') {
+        terminal.clear();
+        terminal.write('Terminal cleared!\r\n');
+    } else {
+        terminal.write(`Command not recognized: ${command}\r\n`);
+    }
+}
+
+
+            
+    </script>
+</body>
+</html>
