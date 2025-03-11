@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اتصل بنا - The Devils</title>
+    <link rel="shortcut icon" type="image/x-icon" href="Documentation/ico/Untitled.jpg" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: center;
+            background-color: #000000;
+            color: white;
+        }
+        .container {
+            max-width: 1000px;
+            max-height: 1000px;
+            margin: 100px auto;
+            padding: 20px;
+            background: #222;
+            border-radius: 15px;
+            border: 2px solid rgb(255, 105, 105);
+            animation: containerGlow 3s infinite alternate;
+        }
+        .contact-info {
+            margin: 20px 0;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        img {
+            width: 30px;
+            height: 30px;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: red;
+            z-index: 10;
+            animation: slideUp 2s ease-in-out forwards;
+        }
+        section {
+            border: 2px solid rgb(200, 255, 255);
+            padding: 10px;
+            margin: 10px;
+            background: #333;
+            border-radius: 10px;
+            animation: sectionGlow 3s infinite alternate;
+        }
+        @keyframes slideUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+        @keyframes containerGlow {
+            0% { border-color: rgb(255, 0, 0); box-shadow: 0 0 15px rgb(255,0,0); }
+            50% { border-color: rgb(0, 255, 0); box-shadow: 0 0 15px rgb(0,255,0); }
+            100% { border-color: rgb(0, 0, 255); box-shadow: 0 0 15px rgb(0, 0, 255); }
+        }
+        @keyframes sectionGlow {
+            0% { border-color: rgb(153, 0, 145); box-shadow: 0 0 15px rgb(153, 0, 145); }
+            50% { border-color: rgb(255, 0, 242); box-shadow: 0 0 15px rgb(255, 0, 242); }
+            100% { border-color: rgb(140, 0, 255); box-shadow: 0 0 15px rgb(140, 0, 255); }
+        }
+        .devs-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .devs {
+            height: 200px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <h1>Our Contact</h1>
+    <div class="container">
+        <h2>Call Us</h2>
+        <div class="contact-info">
+            <section>
+                <p> Email : <a href="mailto:arabemossab@gmail.com">arabemossab@gmail.com</a></p>
+                <p>Phone Number: <a href="tel:+201098944533">+20 1098944533</a></p>
+                <p>🔗 حساباتنا على وسائل التواصل:</p>
+                <p class="icons">
+                    <a href="https://www.facebook.com/profile.php?id=61571867564992" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook"> Facebook
+                    </a>
+                    <a href="https://instagram.com/yourpage" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram"> Instagram
+                    </a>
+                </p>
+            </section>
+        </div>
+    </div>
+    <script>
+        const sections = document.querySelectorAll(".container, section");
+        sections.forEach((section, index) => {
+            setTimeout(() => {
+                section.classList.add("visible");
+            }, 2500 + index * 1000);
+        });
+    </script>
+    <div class="devs-container">
+        <section class="devs">
+            <h1>Supergaint Games</h1>
+            <p>him accounts</p>
+            <a href="https://www.facebook.com/profile.php?id=61554241523475&mibextid=wwXIfr&rdid=QSBJLSKtmEZdI5k4&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F14t4GUV1mY%2F%3Fmibextid%3DwwXIfr#" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook"> Facebook
+            </a>
+            <a href="https://ahmedeslam.itch.io" target="_blank">
+                <img src="https://img.itch.zone/aW1nLzE4MzQxNjgxLnBuZw==/508x254%23mb/%2FHobA%2F.png" alt="YouTube"> itch.io
+            </a>
+        </section>
+        <section class="devs">
+            <h1>The Dev 3</h1>
+            <p>him accounts</p>
+            <a href="https://www.facebook.com/profile.php?id=100092926849113" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook"> Facebook
+            </a>
+            <a href="https://www.youtube.com/@mgthekiller1" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733646.png" alt="YouTube"> YouTube
+
+        </section>
+        <section class="devs">
+            <h1>Mg The Killer</h1>
+            <p>him accounts</p>
+            <a href="https://www.facebook.com/profile.php?id=100092926849113" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook"> Facebook
+            </a>
+            <a href="https://www.youtube.com/@mgthekiller1" target="_blank">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733646.png" alt="YouTube"> YouTube
+            </a>
+            
+        </section>
+    </div>
+</body>
+</html>
