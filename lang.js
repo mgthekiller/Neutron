@@ -212,6 +212,26 @@ require(["vs/editor/editor.main"], function() {
                     label: "clear",
                     kind: monaco.languages.CompletionItemKind.Function,
                     insertText: "ctx.clearRect(0, 0, canvasWidth, canvasHeight);"
+                },
+                {
+                    label: "function drawGameOver",
+                    kind: monaco.languages.CompletionItemKind,
+                    insertText: "function drawGameOver() {  ctx.clearRect(0, 0, canvas.width, canvas.height);   ctx.fillStyle = 'red';  ctx.font = '40px Arial';  ctx.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2);  ctx.font = '20px Arial';   ctx.fillText('Press Enter to Restart', canvas.width / 2 - 100, canvas.height / 2 + 40);  }"
+                },
+                {
+                    label: "Class GameObject",
+                    kind: monaco.languages.CompletionItemKind,
+                    insertText: "class GameObject {  constructor(x, y, size, color) {   this.x = x;   this.y = y;   this.size = size;  this.color = color;   }   draw() {  ctx.fillStyle = this.color;   ctx.beginPath();   ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);   ctx.fill();}  }"
+                },
+                {
+                    label: "f RestGame",
+                    kins: monaco.languages.CompletionItemKind,
+                    insertText: "Function resetGame ()"
+                },
+                {
+                    label: "drawGameOver",
+                    kind: monaco.languages.CompletionItemKind,
+                    insertText: "drawGameOver()"
                 }
             ];
             return { suggestions: suggestions };
@@ -537,7 +557,6 @@ async function saveCode() {
     }
 }
 
-
 async function loadCode() {
     try {
         // فتح نافذة اختيار الملف
@@ -557,6 +576,14 @@ async function loadCode() {
         alert("File loaded successfully!");
     } catch (error) {
         console.error("Load cancelled or failed:", error);
+    }
+}
+
+function createNewFile() {
+    const fileName = prompt("Enter new file name:");
+    if (fileName) {
+        fileList.push(fileName);
+        updateFileExplorer();
     }
 }
 
