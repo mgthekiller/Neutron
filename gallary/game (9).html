@@ -1,0 +1,120 @@
+
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>GAMEDEV</title>
+            <style>
+            body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+canvas { 
+    flex: 1; 
+    background: black; 
+    border: 2px solid #555; 
+    width: 80%; 
+    height: 80%; 
+}
+
+            </style>
+        </head>
+        <body>
+            <canvas id="gameCanvas"></canvas>
+            <script>
+                const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = 400;
+canvas.height = 400;
+
+const gridSize = 4;
+let grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+
+function drawBoard() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#bbada0";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            drawTile(row, col, grid[row][col]);
+        }
+    }
+}
+
+function drawTile(row, col, value) {
+    const size = canvas.width / gridSize;
+    ctx.fillStyle = value ? "#eee4da" : "#cdc1b4";
+    ctx.fillRect(col * size + 5, row * size + 5, size - 10, size - 10);
+    
+    if (value) {
+        ctx.fillStyle = "#776e65";
+        ctx.font = "bold 30px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(value, col * size + size / 2, row * size + size / 2 + 10);
+    }
+}
+
+function addRandomTile() {
+    let emptyCells = [];
+    for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+            if (grid[r][c] === 0) emptyCells.push({ r, c });
+        }
+    }
+    if (emptyCells.length) {
+        let { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+    }
+}
+
+function moveLeft() {
+    for (let r = 0; r < gridSize; r++) {
+        let row = grid[r].filter(val => val);
+        for (let i = 0; i < row.length - 1; i++) {
+            if (row[i] === row[i + 1]) {
+                row[i] *= 2;
+                row.splice(i + 1, 1);
+            }
+        }
+        while (row.length < gridSize) row.push(0);
+        grid[r] = row;
+    }
+}
+
+function rotateGrid() {
+    let newGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+    for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+            newGrid[c][gridSize - 1 - r] = grid[r][c];
+        }
+    }
+    grid = newGrid;
+}
+
+document.addEventListener("keydown", (e) => {
+    let rotated = false;
+    if (e.key === "ArrowUp") { rotateGrid(); rotateGrid(); rotateGrid(); rotated = true; }
+    if (e.key === "ArrowRight") { rotateGrid(); rotateGrid(); rotated = true; }
+    if (e.key === "ArrowDown") { rotateGrid(); rotated = true; }
+    moveLeft();
+    if (rotated) {
+        while (rotated--) rotateGrid();
+    }
+    addRandomTile();
+    drawBoard();
+});
+
+addRandomTile();
+addRandomTile();
+drawBoard();
+  <!-- Insert user code here -->
+            </script>
+        </body>
+        </html>
+    

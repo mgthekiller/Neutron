@@ -1,0 +1,79 @@
+let canvas = document.getElementById('gameCanvas');
+let ctx = canvas.getContext('2d');
+
+class GameObject {
+    constructor(x, y, size, color) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.color = color;
+    }
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+let player = new GameObject(canvas.width / 2, canvas.height - 30, 20, 'blue');
+let balls = [];
+let keys = {};
+let score = 0;  
+
+document.addEventListener('keydown', function(event) {
+    keys[event.key] = true;
+});
+document.addEventListener('keyup', function(event) {
+    keys[event.key] = false;
+});
+
+function spawnBall() {
+    let ball = new GameObject(Math.random() * canvas.width, 0, 15, 'red');
+    balls.push(ball);
+}
+
+function drawScore() {
+    ctx.font = '20px Arial';
+    ctx.fillStyle = 'white';
+    ctx.fillText('Score: ' + score, 10, 30);  
+}
+
+function drawScene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (keys['ArrowLeft']) player.x -= 5;
+    if (keys['ArrowRight']) player.x += 5;
+    player.draw();
+
+    // Spawn balls randomly
+    if (Math.random() < 0.02) spawnBall();
+
+    // Move and draw balls
+    balls.forEach(ball => {
+        ball.y += 3;
+        ball.draw();
+    });
+
+    // Check collision
+    balls.forEach(ball => {
+        if (Math.abs(ball.x - player.x) < ball.size + player.size && Math.abs(ball.y - player.y) < ball.size + player.size) {
+            alert("Game Over! Your score: " + score);
+            balls = [];
+            score = 0;  // إعادة النقاط إلى صفر بعد الخسارة
+        }
+    });
+
+    // تحديث النقاط
+    score++;
+
+    // رسم النقاط
+    drawScore();
+
+    requestAnimationFrame(drawScene);
+}
+
+drawScene();
+
+
+function moveSnake() {         let head = { ...snake[0] };             if (direction === 'right') head.x += gridSize;   if (direction === 'left') head.x -= gridSize;  if (direction === 'up') head.y -= gridSize;  if (direction === 'down') head.y += gridSize;  }
+class GameObject {  constructor(x, y, size, color) {   this.x = x;   this.y = y;   this.size = size;  this.color = color;   }   draw() {  ctx.fillStyle = this.color;   ctx.beginPath();   ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);   ctx.fill();}  }
