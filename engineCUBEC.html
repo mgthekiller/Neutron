@@ -7,6 +7,7 @@
     <title>Neutron Engine Game Editor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body { 
             display: flex; 
@@ -103,21 +104,38 @@
     <div id="sidebar">
         <h3>Projects</h3>
         <ul id="projectList"></ul>
-        <button onclick="newProject()">New Project</button>
-        <button onclick="exportGame()">Export as HTML</button>
+        <button onclick="exportGame()">
+            <i class="fas fa-download"></i> Export as HTML
+        </button>
+        
         <h3>Assets</h3>
-        <button onclick="importAsset()">Import Asset</button>
+        <button onclick="importAsset()">
+            <i class="fas fa-upload"></i> Import Asset
+        </button>
+        
         <h3>File Explorer</h3>
         <div id="fileExplorer"></div>
-        <button onclick="createAndSaveFile()">Create File</button>
-        <button id="gotoindex">back</button>
+        <button onclick="createAndSaveFile()">
+            <i class="fas fa-save"></i> Create File
+        </button>
+        <button id="gotoindex">
+            <i class="fas fa-arrow-left"></i> Back
+        </button>
     </div>
+    
     <div id="editor-container">
         <div id="editor"></div>
-        <button onclick="runCode()">Run</button>
-        <button onclick="saveCode()">Save Code</button>
-        <button onclick="loadCode()">Load Code</button>
+        <button onclick="runCode()">
+            <i class="fas fa-play"></i> Run
+        </button>
+        <button onclick="saveCode()">
+            <i class="fas fa-save"></i> Save Code
+        </button>
+        <button onclick="loadCode()">
+            <i class="fas fa-folder-open"></i> Load Code
+        </button>
     </div>
+    
     <script>
         document.getElementById("gotoindex").addEventListener("click", function() {
             window.location.href = "index.html";  // الانتقال إلى صفحة index.html
@@ -132,7 +150,7 @@
 
     <!-- الكود المضاف -->
     <script>
-     let projectFolder = null;
+    let projectFolder = null;
     let fileHandle = null;
 
     // دالة لإنشاء الملف وحفظ المحتوى
@@ -195,15 +213,18 @@
     // دالة لتشغيل الكود
     async function runCode() {
         try {
-            // حفظ الكود الحالي في الملف قبل التشغيل
             await saveToFile();
-
-            // تنفيذ الكود
-            const code = editor.getValue();
-            eval(code); // تنفيذ الكود باستخدام eval (يمكن استبدالها بأسلوب أكثر أمانًا)
-            console.log("Code executed successfully!");
+            document.getElementById("console").innerHTML = "";
+            eval(editor.getValue());
+            document.getElementById("console").innerHTML = "Execution successful";
         } catch (error) {
-            console.error("Error executing code:", error);
+            const errorMessage = `
+                <strong style="color:red;">Error: </strong><span style="color:white;">${error.message}</span><br>
+                <strong style="color:orange;">Line: </strong><span style="color:white;">${error.lineNumber}</span><br>
+                <strong style="color:orange;">Column: </strong><span style="color:white;">${error.columnNumber}</span><br>
+                <a href="javascript:goToErrorLine(${error.lineNumber})" style="color: #f; text-decoration: underline;">Go to line ${error.lineNumber}</a>
+            `;
+            document.getElementById("console").innerHTML = errorMessage;
         }
     }
 
